@@ -1,0 +1,30 @@
+<%- include("partials/head", { title }) %>
+    <main class="auth-card">
+      <p class="eyebrow">Junte-se à comunidade</p>
+      <h1>Criar sua conta</h1>
+      <p class="muted">Cadastre-se para acompanhar sua comunidade gamer.</p>
+    <% if (error) { %>
+        <p style="color: red;"><%= error %></p>
+    <% } %>
+
+        <form action="/auth/register" method="POST">
+    <div>
+      <label for="username">Nome de Usuário (Nickname):</label><br>
+      <input type="text" id="username" name="username" required>
+    </div>
+    <br>
+    <div>
+      <label for="email">E-mail:</label><br>
+      <input type="email" id="email" name="email" required>
+    </div>
+    <br>
+    <div>
+      <label for="password">Senha:</label><br>
+      <input type="password" id="password" name="password" required minlength="6">
+    </div>
+    <br>
+    <button type="submit">Cadastrar</button>
+  </form>
+      <p>Já tem uma conta? <a href="/auth/login">Faça login</a></p>
+    </main>
+<%- include("partials/footer") %>

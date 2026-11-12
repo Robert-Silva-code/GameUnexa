@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#111827">
+    <title><%= title %> | GameUnexa</title>
+    <link rel="stylesheet" href="/css/auth.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">GameUnexa</a>
+      <nav aria-label="Navegação principal">
+        <a href="/jogos">Jogos</a>
+        <% if (typeof currentUser !== "undefined" && currentUser) { %>
+          <a href="/feed">Feed</a>
+          <a href="/amizades">Amizades</a>
+          <a href="/perfil">Meu perfil</a>
+          <a href="/biblioteca">Biblioteca</a>
+          <a href="/perfil/configuracoes">Configurações</a>
+          <form class="inline-form" action="/logout" method="post">
+            <button class="nav-button" type="submit">Sair</button>
+          </form>
+        <% } else { %>
+          <a href="/login">Entrar</a>
+          <a href="/cadastro">Criar conta</a>
+        <% } %>
+      </nav>
+    </header>

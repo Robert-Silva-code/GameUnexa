@@ -1,13 +1,11 @@
-<!doctype html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><%= title %></title>
-  </head>
-  <body>
-    <main>
+<%- include("partials/head", { title }) %>
+    <main class="auth-card home-card">
+      <p class="eyebrow">Sua comunidade gamer</p>
       <h1><%= title %></h1>
+      <p class="muted">Conecte-se com quem joga o que você ama.</p>
+      <div class="actions">
+        <a class="primary-button button-link" href="/auth/register">Criar conta</a>
+        <a class="text-link" href="/auth/login">Já tenho uma conta</a>
+      </div>
     </main>
-  </body>
-</html>
+<%- include("partials/footer") %>

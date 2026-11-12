@@ -7,6 +7,8 @@ import indexRoutes from "./src/routes/testeIndex.js";
 
 import { driver, verifyConnection } from "./src/config/neo4j.js";
 import { initConstraints } from "./src/config/initDb.js";
+import authRoutes from './src/routes/authRoutes.js'
+import { requireAuth, checkUser } from "./src/middlewares/authMiddleware.js";
 
 const app = express();
 const currentFile = fileURLToPath(import.meta.url);
@@ -20,6 +22,22 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(currentDirectory, "public")));
 app.use("/", indexRoutes);
+
+app.use(checkUser);
+
+// Rotas
+app.get('/', (req, res) => {
+  res.render('index');
+});
+
+app.use('/auth', authRoutes);
+
+// Rota protegida de perfil
+app.get('/profile', requireAuth, (req, res) => {
+  res.render('profile', { user: req.user });
+});
+
+
 
 const PORT = process.env.PORT || 3000;
 
