@@ -4,11 +4,19 @@ import { getSession } from '../config/neo4j.js';
 
 export const renderCatalog = async (req, res) => {
   const query = req.query.q || '';
+  const limit = 20;
+  const maxItems = 500;
+  const maxPages = Math.ceil(maxItems / limit);
+
+  let currentPage = parseInt(req.query.page, 10) || 1;
+  if (currentPage < 1) currentPage = 1;
+  if (currentPage > maxPages) currentPage = maxPages;
+
   const userId = req.user.id;
   const session = getSession();
 
   try {
-    const games = await searchGames(query);
+    const games = await searchGames(query, currentPage, limit);
     const igdbIds = games.map(g => g.igdbId);
 
     const result = await session.run(
@@ -42,7 +50,16 @@ export const renderCatalog = async (req, res) => {
       };
     });
 
-    res.render('catalog', { games, query, interactionsMap });
+    const hasNextPage = games.length === limit && currentPage < maxPages;
+
+    res.render('catalog', { 
+      games, 
+      query, 
+      interactionsMap,
+      currentPage,
+      maxPages,
+      hasNextPage
+    });
   } catch (error) {
     console.error('Erro ao carregar catálogo:', error);
     res.status(500).send('Erro ao buscar catálogo na IGDB.');
@@ -53,7 +70,8 @@ export const renderCatalog = async (req, res) => {
 
 export const saveToLibrary = async (req, res) => {
   const userId = req.user.id;
-  const { igdbId, name, coverUrl, status, rating, redirectQuery } = req.body;
+  // Adicionado redirectPage aqui:
+  const { igdbId, name, coverUrl, status, rating, redirectQuery, redirectPage } = req.body;
   const session = getSession();
 
   try {
@@ -77,7 +95,9 @@ export const saveToLibrary = async (req, res) => {
       }
     );
 
-    res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}`);
+    // Mantém a página atual no redirecionamento:
+    const pageParam = redirectPage ? `&page=${redirectPage}` : '';
+    res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}${pageParam}`);
   } catch (error) {
     console.error('Erro ao salvar na biblioteca:', error);
     res.status(500).send('Erro ao salvar jogo.');
@@ -88,7 +108,8 @@ export const saveToLibrary = async (req, res) => {
 
 export const toggleFavorite = async (req, res) => {
   const userId = req.user.id;
-  const { igdbId, name, coverUrl, redirectQuery } = req.body;
+  // Adicionado redirectPage aqui:
+  const { igdbId, name, coverUrl, redirectQuery, redirectPage } = req.body;
   const session = getSession();
 
   try {
@@ -109,7 +130,9 @@ export const toggleFavorite = async (req, res) => {
       { userId, igdbId: String(igdbId), name, coverUrl }
     );
 
-    res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}`);
+    // Mantém a página atual no redirecionamento:
+    const pageParam = redirectPage ? `&page=${redirectPage}` : '';
+    res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}${pageParam}`);
   } catch (error) {
     console.error('Erro ao favoritar:', error);
     res.status(500).send('Erro ao favoritar jogo.');
@@ -120,12 +143,14 @@ export const toggleFavorite = async (req, res) => {
 
 export const addReview = async (req, res) => {
   const userId = req.user.id;
-  const { igdbId, name, coverUrl, text, redirectQuery } = req.body;
+  // Adicionado redirectPage aqui:
+  const { igdbId, name, coverUrl, text, redirectQuery, redirectPage } = req.body;
   const session = getSession();
+  const pageParam = redirectPage ? `&page=${redirectPage}` : '';
 
   try {
     if (!text || !text.trim()) {
-      return res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}`);
+      return res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}${pageParam}`);
     }
 
     await session.run(
@@ -150,7 +175,7 @@ export const addReview = async (req, res) => {
       }
     );
 
-    res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}`);
+    res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}${pageParam}`);
   } catch (error) {
     console.error('Erro ao comentar:', error);
     res.status(500).send('Erro ao publicar comentário.');

@@ -23,19 +23,26 @@ const getIgdbToken = async () => {
   return cachedToken;
 };
 
-export const searchGames = async (query = '') => {
+export const searchGames = async (query = '', page = 1, limit = 20) => {
   const token = await getIgdbToken();
+  const offset = (page - 1) * limit;
 
   let apicalypseQuery = `
     fields id, name, cover.url, first_release_date, summary, rating;
-    where cover != null & version_parent = null;
-    limit 20;
+    limit ${limit};
+    offset ${offset};
   `;
 
   if (query.trim()) {
-    apicalypseQuery += `search "${query.replace(/"/g, '')}";`;
+    apicalypseQuery += `
+      where cover != null & version_parent = null;
+      search "${query.replace(/"/g, '')}";
+    `;
   } else {
-    apicalypseQuery += `where cover != null & total_rating_count > 50; sort total_rating_count desc;`;
+    apicalypseQuery += `
+      where cover != null & version_parent = null & total_rating_count > 50;
+      sort total_rating_count desc;
+    `;
   }
 
   const response = await axios.post('https://api.igdb.com/v4/games', apicalypseQuery, {

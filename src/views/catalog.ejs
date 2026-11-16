@@ -5,6 +5,24 @@
   <button type="submit" class="btn btn-primary">Buscar</button>
 </form>
 
+<div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin: 2.5rem 0;">
+  <% if (currentPage > 1) { %>
+    <a href="/games/catalog?q=<%= encodeURIComponent(query) %>&page=<%= currentPage - 1 %>" class="btn btn-secondary">
+      ← Anterior
+    </a>
+  <% } %>
+
+  <span style="color: #9ca3af; font-weight: 500;">
+    Página <%= currentPage %> de <%= maxPages %>
+  </span>
+
+  <% if (hasNextPage) { %>
+    <a href="/games/catalog?q=<%= encodeURIComponent(query) %>&page=<%= currentPage + 1 %>" class="btn btn-primary">
+      Próxima →
+    </a>
+  <% } %>
+</div>
+
 <div class="games-grid">
   <% games.forEach(game => { 
     const userData = interactionsMap[game.igdbId] || { status: '', rating: '', isFavorited: false, reviews: [] };
@@ -25,6 +43,7 @@
           <input type="hidden" name="name" value="<%= game.name %>">
           <input type="hidden" name="coverUrl" value="<%= game.coverUrl %>">
           <input type="hidden" name="redirectQuery" value="<%= query %>">
+          <input type="hidden" name="redirectPage" value="<%= currentPage %>">
           <button type="submit" class="btn btn-secondary btn-full <%= userData.isFavorited ? 'fav-active' : '' %>">
             <%= userData.isFavorited ? '❤️ Favoritado' : '🤍 Favoritar' %>
           </button>
@@ -35,6 +54,7 @@
           <input type="hidden" name="name" value="<%= game.name %>">
           <input type="hidden" name="coverUrl" value="<%= game.coverUrl %>">
           <input type="hidden" name="redirectQuery" value="<%= query %>">
+          <input type="hidden" name="redirectPage" value="<%= currentPage %>">
 
           <select name="status">
             <option value="PLAYING" <%= userData.status === 'PLAYING' ? 'selected' : '' %>>🎮 Jogando</option>
@@ -60,6 +80,7 @@
           <input type="hidden" name="name" value="<%= game.name %>">
           <input type="hidden" name="coverUrl" value="<%= game.coverUrl %>">
           <input type="hidden" name="redirectQuery" value="<%= query %>">
+          <input type="hidden" name="redirectPage" value="<%= currentPage %>">
           <input type="text" name="text" placeholder="Escreva um comentário..." required>
           <button type="submit" class="btn btn-secondary btn-full">Comentar</button>
         </form>
@@ -76,6 +97,24 @@
       </div>
     </div>
   <% }) %>
+</div>
+
+<div class="pagination" style="display: flex; justify-content: center; align-items: center; gap: 1rem; margin: 2.5rem 0;">
+  <% if (currentPage > 1) { %>
+    <a href="/games/catalog?q=<%= encodeURIComponent(query) %>&page=<%= currentPage - 1 %>" class="btn btn-secondary">
+      ← Anterior
+    </a>
+  <% } %>
+
+  <span style="color: #9ca3af; font-weight: 500;">
+    Página <%= currentPage %> de <%= maxPages %>
+  </span>
+
+  <% if (hasNextPage) { %>
+    <a href="/games/catalog?q=<%= encodeURIComponent(query) %>&page=<%= currentPage + 1 %>" class="btn btn-primary">
+      Próxima →
+    </a>
+  <% } %>
 </div>
 
 <%- include('partials/footer') %>
