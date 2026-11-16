@@ -1,11 +1,19 @@
-<%- include("partials/head", { title }) %>
-    <main class="auth-card home-card">
-      <p class="eyebrow">Sua comunidade gamer</p>
-      <h1><%= title %></h1>
-      <p class="muted">Conecte-se com quem joga o que você ama.</p>
-      <div class="actions">
-        <a class="primary-button button-link" href="/auth/register">Criar conta</a>
-        <a class="text-link" href="/auth/login">Já tenho uma conta</a>
-      </div>
-    </main>
-<%- include("partials/footer") %>
+<%- include('partials/head', { title: 'Início' }) %>
+
+<div style="text-align: center; padding: 60px 20px;">
+  <h1 style="font-size: 2.5rem; margin-bottom: 16px;">Organize seus jogos. Conecte-se com jogadores.</h1>
+  <p style="color: var(--text-secondary); max-width: 560px; margin: 0 auto 32px;">
+    Acompanhe o que você está jogando, avalie seus títulos favoritos e descubra recomendações baseadas na sua rede.
+  </p>
+
+  <% if (locals.user) { %>
+    <a href="/games/catalog" class="btn btn-primary">Explorar Catálogo</a>
+  <% } else { %>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <a href="/auth/register" class="btn btn-primary">Começar Agora</a>
+      <a href="/auth/login" class="btn btn-secondary">Já tenho conta</a>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

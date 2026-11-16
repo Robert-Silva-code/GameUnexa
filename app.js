@@ -8,6 +8,7 @@ import indexRoutes from "./src/routes/testeIndex.js";
 import { driver, verifyConnection } from "./src/config/neo4j.js";
 import { initConstraints } from "./src/config/initDb.js";
 import authRoutes from './src/routes/authRoutes.js'
+import gameRoutes from './src/routes/gameRoutes.js';
 import { requireAuth, checkUser } from "./src/middlewares/authMiddleware.js";
 
 const app = express();
@@ -20,8 +21,7 @@ app.set("views", path.join(currentDirectory, "src", "views"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cookieParser());
-app.use(express.static(path.join(currentDirectory, "public")));
-app.use("/", indexRoutes);
+app.use(express.static(path.join(currentDirectory, "src", "public")));
 
 app.use(checkUser);
 
@@ -30,7 +30,9 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+app.use("/", indexRoutes);
 app.use('/auth', authRoutes);
+app.use('/games', gameRoutes);
 
 // Rota protegida de perfil
 app.get('/profile', requireAuth, (req, res) => {
@@ -42,7 +44,7 @@ app.get('/profile', requireAuth, (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
-  await verifyConnection();
+  await verifyConnection(); 
   await initConstraints();
 
   app.listen(PORT, () => {

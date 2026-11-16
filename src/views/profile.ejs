@@ -1,16 +1,8 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Perfil de <%= user.username %> - GameUnexa</title>
-</head>
-<body>
-  <h1>Olá, <%= user.username %>!</h1>
-  <p>Seu ID no Neo4j: <code><%= user.id %></code></p>
+<%- include('partials/head', { title: 'Meu Perfil' }) %>
 
-  <nav>
-    <a href="/">Início</a> |
-    <a href="/auth/logout">Sair</a>
-  </nav>
-</body>
-</html>
+<h1>Olá, <%= user.username %>!</h1>
+<p style="color: var(--text-secondary); margin-top: 8px;">
+  Aqui exibiremos sua biblioteca de jogos, favoritos e estatísticas na próxima etapa.
+</p>
+
+<%- include('partials/footer') %>

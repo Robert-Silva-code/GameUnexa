@@ -1,27 +1,30 @@
-<%- include("partials/head", { title }) %>
-    <main class="auth-card">
-      <p class="eyebrow">Bom ter você de volta</p>
-      <h1>Entrar</h1>
-      <p class="muted">Acesse sua conta GameUnexa.</p>
+<%- include('partials/head', { title: 'Entrar' }) %>
 
-    <% if (error) { %>
-        <p style="color: red;"><%= error %></p>
-    <% } %>
+<div class="auth-wrapper">
+  <h1>Bem-vindo de volta</h1>
+  <p class="auth-subtitle">Entre na sua conta para acessar sua biblioteca.</p>
 
-      <form action="/auth/login" method="POST">
-    <div>
-      <label for="email">E-mail:</label><br>
+  <% if (error) { %>
+    <div class="alert-error"><%= error %></div>
+  <% } %>
+
+  <form action="/auth/login" method="POST">
+    <div class="form-group">
+      <label for="email">E-mail</label>
       <input type="email" id="email" name="email" required>
     </div>
-    <br>
-    <div>
-      <label for="password">Senha:</label><br>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
       <input type="password" id="password" name="password" required>
     </div>
-    <br>
-    <button type="submit">Entrar</button>
+
+    <button type="submit" class="btn btn-primary btn-full">Entrar</button>
   </form>
 
-  <p>Ainda não tem conta? <a href="/auth/register">Cadastre-se</a></p>
-    </main>
-<%- include("partials/footer") %>
+  <p style="margin-top: 16px; font-size: 0.9rem; color: var(--text-secondary);">
+    Ainda não tem conta? <a href="/auth/register" style="color: var(--accent-green);">Cadastre-se</a>
+  </p>
+</div>
+
+<%- include('partials/footer') %>

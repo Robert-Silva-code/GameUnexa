@@ -1,30 +1,35 @@
-<%- include("partials/head", { title }) %>
-    <main class="auth-card">
-      <p class="eyebrow">Junte-se à comunidade</p>
-      <h1>Criar sua conta</h1>
-      <p class="muted">Cadastre-se para acompanhar sua comunidade gamer.</p>
-    <% if (error) { %>
-        <p style="color: red;"><%= error %></p>
-    <% } %>
+<%- include('partials/head', { title: 'Criar Conta' }) %>
 
-        <form action="/auth/register" method="POST">
-    <div>
-      <label for="username">Nome de Usuário (Nickname):</label><br>
+<div class="auth-wrapper">
+  <h1>Criar Conta</h1>
+  <p class="auth-subtitle">Monte seu perfil gamer e comece sua coleção.</p>
+
+  <% if (error) { %>
+    <div class="alert-error"><%= error %></div>
+  <% } %>
+
+  <form action="/auth/register" method="POST">
+    <div class="form-group">
+      <label for="username">Nickname</label>
       <input type="text" id="username" name="username" required>
     </div>
-    <br>
-    <div>
-      <label for="email">E-mail:</label><br>
+
+    <div class="form-group">
+      <label for="email">E-mail</label>
       <input type="email" id="email" name="email" required>
     </div>
-    <br>
-    <div>
-      <label for="password">Senha:</label><br>
+
+    <div class="form-group">
+      <label for="password">Senha</label>
       <input type="password" id="password" name="password" required minlength="6">
     </div>
-    <br>
-    <button type="submit">Cadastrar</button>
+
+    <button type="submit" class="btn btn-primary btn-full">Cadastrar</button>
   </form>
-      <p>Já tem uma conta? <a href="/auth/login">Faça login</a></p>
-    </main>
-<%- include("partials/footer") %>
+
+  <p style="margin-top: 16px; font-size: 0.9rem; color: var(--text-secondary);">
+    Já tem uma conta? <a href="/auth/login" style="color: var(--accent-green);">Faça login</a>
+  </p>
+</div>
+
+<%- include('partials/footer') %>
