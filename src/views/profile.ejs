@@ -1,8 +1,96 @@
-<%- include('partials/head', { title: 'Meu Perfil' }) %>
+<%- include('partials/head', { title: 'Perfil de ' + profileUser.username }) %>
 
-<h1>Olá, <%= user.username %>!</h1>
-<p style="color: var(--text-secondary); margin-top: 8px;">
-  Aqui exibiremos sua biblioteca de jogos, favoritos e estatísticas na próxima etapa.
-</p>
+<div class="profile-header">
+  <div class="profile-info">
+    <h1>@<%= profileUser.username %></h1>
+    <div class="profile-stats">
+      <span><strong><%= library.length %></strong> jogos listados</span>
+      <span><strong><%= favorites.length %></strong> favoritos</span>
+      <span><strong><%= profileUser.followersCount %></strong> seguidores</span>
+      <span><strong><%= profileUser.followingCount %></strong> seguindo</span>
+    </div>
+  </div>
+
+  <% if (!profileUser.isOwnProfile) { %>
+    <form action="/community/follow/<%= profileUser.id %>" method="POST">
+      <input type="hidden" name="redirectTo" value="/profile/<%= profileUser.username %>">
+      <button type="submit" class="btn <%= profileUser.isFollowing ? 'btn-secondary' : 'btn-primary' %>">
+        <%= profileUser.isFollowing ? '✓ Seguindo' : '+ Seguir Jogador' %>
+      </button>
+    </form>
+  <% } %>
+</div>
+
+<!-- Seção de Favoritos -->
+<h2 class="section-title">❤️ Jogos Favoritos</h2>
+
+<% if (favorites.length === 0) { %>
+  <p style="color: var(--text-muted); margin-bottom: 32px;">Nenhum jogo favoritado ainda.</p>
+<% } else { %>
+  <div class="favorites-grid">
+    <% favorites.forEach(game => { %>
+      <div class="fav-card">
+        <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+        <p title="<%= game.name %>"><%= game.name %></p>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<!-- Seção da Biblioteca -->
+<h2 class="section-title">Biblioteca</h2>
+
+<% const baseProfileUrl = profileUser.isOwnProfile ? '/profile' : '/profile/' + profileUser.username; %>
+<div class="filter-tabs">
+  <a href="<%= baseProfileUrl %>?status=ALL" class="filter-tab <%= statusFilter === 'ALL' ? 'active' : '' %>">Todos</a>
+  <a href="<%= baseProfileUrl %>?status=PLAYING" class="filter-tab <%= statusFilter === 'PLAYING' ? 'active' : '' %>">🎮 Jogando</a>
+  <a href="<%= baseProfileUrl %>?status=BEATEN" class="filter-tab <%= statusFilter === 'BEATEN' ? 'active' : '' %>">🏆 Zerados</a>
+  <a href="<%= baseProfileUrl %>?status=WISHLIST" class="filter-tab <%= statusFilter === 'WISHLIST' ? 'active' : '' %>">⭐ Lista de Desejos</a>
+  <a href="<%= baseProfileUrl %>?status=BACKLOG" class="filter-tab <%= statusFilter === 'BACKLOG' ? 'active' : '' %>">📚 Backlog</a>
+</div>
+
+<% if (library.length === 0) { %>
+  <p style="color: var(--text-muted);">
+    Nenhum jogo encontrado nesta categoria.
+    <% if (profileUser.isOwnProfile) { %>
+      <a href="/games/catalog" style="color: var(--accent-green);">Explorar catálogo</a>
+    <% } %>
+  </p>
+<% } else { %>
+  <% 
+    const statusLabels = {
+      PLAYING: '🎮 Jogando',
+      BEATEN: '🏆 Zerado',
+      WISHLIST: '⭐ Lista de Desejos',
+      BACKLOG: '📚 Backlog'
+    };
+  %>
+  <div class="games-grid">
+    <% library.forEach(game => { %>
+      <div class="game-card">
+        <div class="game-cover-wrapper">
+          <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+        </div>
+        <div class="game-body">
+          <h3 class="game-title"><%= game.name %></h3>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="status-badge"><%= statusLabels[game.status] || game.status %></span>
+            <% if (game.rating) { %>
+              <span class="rating-stars"><%= '★'.repeat(game.rating) %></span>
+            <% } %>
+          </div>
+
+          <% if (profileUser.isOwnProfile) { %>
+            <form action="/profile/library/remove" method="POST" style="margin-top: auto;">
+              <input type="hidden" name="igdbId" value="<%= game.igdbId %>">
+              <button type="submit" class="btn btn-danger btn-full">Remover da Biblioteca</button>
+            </form>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
 
 <%- include('partials/footer') %>

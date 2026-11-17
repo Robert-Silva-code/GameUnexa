@@ -62,7 +62,7 @@ export const register = async (req, res) => {
     const createdUser = result.records[0].get('u').properties;
     setAuthCookie(res, createdUser);
 
-    return res.redirect('/profile');
+    return res.redirect('/feed');
   } catch (error) {
     if (error.code === 'Neo.ClientError.Schema.ConstraintValidationFailed') {
       return res.status(400).render('register', {
@@ -102,7 +102,7 @@ export const login = async (req, res) => {
     }
 
     setAuthCookie(res, user);
-    return res.redirect('/profile');
+    return res.redirect('/feed');
   } catch (error) {
     console.error('Erro no login:', error);
     return res.status(500).render('login', { error: 'Erro interno ao realizar login.' });

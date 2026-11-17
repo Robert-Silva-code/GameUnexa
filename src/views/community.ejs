@@ -1,0 +1,46 @@
+<%- include('partials/head', { title: 'Comunidade' }) %>
+
+<h1 style="margin-bottom: 8px;">Comunidade de Jogadores</h1>
+<p style="color: var(--text-secondary); margin-bottom: 24px;">
+  Encontre outros jogadores, veja bibliotecas e acompanhe o que seus amigos estão jogando.
+</p>
+
+<form class="search-bar" action="/community" method="GET">
+  <input type="text" name="q" placeholder="Buscar jogador pelo nickname..." value="<%= search %>">
+  <button type="submit" class="btn btn-primary">Buscar</button>
+</form>
+
+<% if (players.length === 0) { %>
+  <p style="color: var(--text-muted);">Nenhum outro jogador encontrado.</p>
+<% } else { %>
+  <div class="players-grid">
+    <% players.forEach(player => { %>
+      <div class="player-card">
+        <div>
+          <div class="player-card-header">
+            <a href="/profile/<%= player.username %>" class="player-name">@<%= player.username %></a>
+            <% if (player.sharedGamesCount > 0) { %>
+              <span class="shared-badge"><%= player.sharedGamesCount %> em comum</span>
+            <% } %>
+          </div>
+          <p class="game-meta" style="margin-top: 6px;">
+            <%= player.gamesCount %> jogos na biblioteca
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <a href="/profile/<%= player.username %>" class="btn btn-secondary" style="flex: 1;">Ver Perfil</a>
+          
+          <form action="/community/follow/<%= player.id %>" method="POST" style="flex: 1;">
+            <input type="hidden" name="redirectTo" value="/community?q=<%= encodeURIComponent(search) %>">
+            <button type="submit" class="btn btn-full <%= player.isFollowing ? 'btn-secondary' : 'btn-primary' %>">
+              <%= player.isFollowing ? '✓ Seguindo' : '+ Seguir' %>
+            </button>
+          </form>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

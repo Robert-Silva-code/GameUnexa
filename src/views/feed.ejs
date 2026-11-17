@@ -1,0 +1,98 @@
+<%- include('partials/head', { title: 'Feed de Atividades' }) %>
+
+<%
+  const statusActionText = {
+    PLAYING: 'começou a jogar',
+    BEATEN: 'zerou',
+    WISHLIST: 'adicionou à lista de desejos',
+    BACKLOG: 'colocou na fila'
+  };
+%>
+
+<div class="feed-layout">
+  <div>
+    <h1 style="margin-bottom: 6px;">Feed da Comunidade</h1>
+    <p style="color: var(--text-secondary); margin-bottom: 24px;">
+      Acompanhe as avaliações, notas e atualizações dos jogadores que você segue.
+    </p>
+
+    <% if (activities.length === 0) { %>
+      <div class="activity-card" style="flex-direction: column;">
+        <p style="color: var(--text-secondary);">
+          Seu feed ainda está vazio! Siga outros jogadores para ver as avaliações e jogos deles aqui.
+        </p>
+        <a href="/community" class="btn btn-primary">Encontrar Jogadores</a>
+      </div>
+    <% } else { %>
+      <div class="feed-list">
+        <% activities.forEach(act => { %>
+          <div class="activity-card">
+            <img src="<%= act.coverUrl %>" alt="<%= act.gameName %>" class="activity-cover">
+
+            <div class="activity-content">
+              <div class="activity-header">
+                <a href="/profile/<%= act.username %>">@<%= act.username %></a>
+
+                <% if (act.type === 'LIBRARY') { %>
+                  <%= statusActionText[act.status] || 'atualizou' %>
+                  <span class="activity-game-title"><%= act.gameName %></span>
+                <% } else if (act.type === 'FAVORITE') { %>
+                  favoritou ❤️ <span class="activity-game-title"><%= act.gameName %></span>
+                <% } else if (act.type === 'REVIEW') { %>
+                  avaliou <span class="activity-game-title"><%= act.gameName %></span>
+                <% } %>
+              </div>
+
+              <% if (act.rating) { %>
+                <div>
+                  <span class="rating-stars"><%= '★'.repeat(act.rating) %><%= '☆'.repeat(5 - act.rating) %></span>
+                  <span style="font-size: 0.82rem; color: var(--text-secondary);">(<%= act.rating %>/5)</span>
+                </div>
+              <% } %>
+
+              <% if (act.type === 'REVIEW' && act.text) { %>
+                <div class="activity-review-quote">
+                  "<%= act.text %>"
+                </div>
+              <% } %>
+
+              <span class="activity-time">
+                <%= new Date(act.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) %>
+              </span>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <aside class="rec-sidebar">
+    <h2>✨ Recomendados pela sua Rede</h2>
+
+    <% if (recommendations.length === 0) { %>
+      <p style="font-size: 0.88rem; color: var(--text-muted);">
+        Siga mais jogadores na comunidade para receber recomendações personalizadas baseadas nos jogos deles!
+      </p>
+    <% } else { %>
+      <% recommendations.forEach(rec => { %>
+        <div class="rec-item">
+          <img src="<%= rec.coverUrl %>" alt="<%= rec.name %>">
+          <div class="rec-info">
+            <div class="rec-title" title="<%= rec.name %>"><%= rec.name %></div>
+            <div class="rec-friends">
+              Jogado por <strong>@<%= rec.recommendedBy.slice(0, 2).join(', @') %></strong>
+              <% if (rec.recommendedBy.length > 2) { %>
+                e mais <%= rec.recommendedBy.length - 2 %>
+              <% } %>
+            </div>
+            <a href="/games/catalog?q=<%= encodeURIComponent(rec.name) %>" style="font-size: 0.8rem; color: var(--accent-green); display: inline-block; margin-top: 4px;">
+              Ver no catálogo →
+            </a>
+          </div>
+        </div>
+      <% }) %>
+    <% } %>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

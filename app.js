@@ -3,12 +3,15 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import indexRoutes from "./src/routes/testeIndex.js";
 
 import { driver, verifyConnection } from "./src/config/neo4j.js";
 import { initConstraints } from "./src/config/initDb.js";
+
+import indexRoutes from "./src/routes/testeIndex.js";
 import authRoutes from './src/routes/authRoutes.js'
 import gameRoutes from './src/routes/gameRoutes.js';
+import socialRoutes from './src/routes/socialRoutes.js'
+
 import { requireAuth, checkUser } from "./src/middlewares/authMiddleware.js";
 
 const app = express();
@@ -33,11 +36,7 @@ app.get('/', (req, res) => {
 app.use("/", indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/games', gameRoutes);
-
-// Rota protegida de perfil
-app.get('/profile', requireAuth, (req, res) => {
-  res.render('profile', { user: req.user });
-});
+app.use('/', socialRoutes);
 
 
 
