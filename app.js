@@ -10,7 +10,8 @@ import { initConstraints } from "./src/config/initDb.js";
 import indexRoutes from "./src/routes/testeIndex.js";
 import authRoutes from './src/routes/authRoutes.js'
 import gameRoutes from './src/routes/gameRoutes.js';
-import socialRoutes from './src/routes/socialRoutes.js'
+import socialRoutes from './src/routes/socialRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
 
 import { requireAuth, checkUser } from "./src/middlewares/authMiddleware.js";
 
@@ -35,6 +36,7 @@ app.get('/', (req, res) => {
 app.use("/", indexRoutes);
 app.use('/auth', authRoutes);
 app.use('/games', gameRoutes);
+app.use('/user', userRoutes)
 app.use('/', socialRoutes);
 
 
