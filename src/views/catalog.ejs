@@ -29,12 +29,16 @@
   %>
     <div class="game-card">
       <div class="game-cover-wrapper">
-        <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+        <a href="/games/<%= game.igdbId %>" class="game-cover-wrapper">
+          <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+        </a>
       </div>
       
       <div class="game-body">
         <div>
-          <h3 class="game-title"><%= game.name %></h3>
+          <a href="/games/ <%= game.igdbId %>">
+            <h3 class="game-title"><%= game.name %></h3>
+          </a>
           <span class="game-meta">Lançamento: <%= game.releaseYear %></span>
         </div>
 
@@ -45,7 +49,11 @@
           <input type="hidden" name="redirectQuery" value="<%= query %>">
           <input type="hidden" name="redirectPage" value="<%= currentPage %>">
           <button type="submit" class="btn btn-secondary btn-full <%= userData.isFavorited ? 'fav-active' : '' %>">
-            <%= userData.isFavorited ? '❤️ Favoritado' : '🤍 Favoritar' %>
+            <% if (userData.isFavorited) { %>
+              <i class="ph-fill ph-heart" style="color: #ef4444;"></i> Favoritado
+            <% } else { %>
+              <i class="ph ph-heart"></i> Favoritar
+            <% } %>
           </button>
         </form>
 
@@ -57,10 +65,10 @@
           <input type="hidden" name="redirectPage" value="<%= currentPage %>">
 
           <select name="status">
-            <option value="PLAYING" <%= userData.status === 'PLAYING' ? 'selected' : '' %>>🎮 Jogando</option>
-            <option value="BEATEN" <%= userData.status === 'BEATEN' ? 'selected' : '' %>>🏆 Zerado</option>
-            <option value="WISHLIST" <%= userData.status === 'WISHLIST' ? 'selected' : '' %>>⭐ Lista de Desejos</option>
-            <option value="BACKLOG" <%= userData.status === 'BACKLOG' ? 'selected' : '' %>>📚 Na Fila (Backlog)</option>
+            <option value="PLAYING" <%= userData.status === 'PLAYING' ? 'selected' : '' %>>Jogando</option>
+            <option value="BEATEN" <%= userData.status === 'BEATEN' ? 'selected' : '' %>>Zerado</option>
+            <option value="WISHLIST" <%= userData.status === 'WISHLIST' ? 'selected' : '' %>>Lista de Desejos</option>
+            <option value="BACKLOG" <%= userData.status === 'BACKLOG' ? 'selected' : '' %>>Na Fila (Backlog)</option>
           </select>
 
           <select name="rating">

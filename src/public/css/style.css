@@ -37,7 +37,6 @@ a {
   transition: color 0.15s ease;
 }
 
-/* Navbar */
 .navbar {
   background-color: var(--bg-nav);
   border-bottom: 1px solid var(--border-subtle);
@@ -91,7 +90,6 @@ a {
   border: 1px solid var(--border-subtle);
 }
 
-/* Layout Principal */
 .container {
   max-width: 1240px;
   width: 100%;
@@ -100,7 +98,6 @@ a {
   flex: 1;
 }
 
-/* Botões */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -154,7 +151,6 @@ a {
   width: 100%;
 }
 
-/* Formulários e Auth Cards */
 .auth-wrapper {
   max-width: 420px;
   margin: 40px auto;
@@ -218,7 +214,6 @@ select:focus {
   margin-bottom: 16px;
 }
 
-/* Barra de Busca do Catálogo */
 .search-bar {
   display: flex;
   gap: 10px;
@@ -229,7 +224,6 @@ select:focus {
   flex: 1;
 }
 
-/* Grid de Jogos (Estilo Backloggd/Steam) */
 .games-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -365,7 +359,6 @@ select:focus {
   align-items: center;
 }
 
-/* Abas de Filtro da Biblioteca */
 .filter-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -390,7 +383,6 @@ select:focus {
   border-color: var(--accent-primary);
 }
 
-/* Badges de Status e Nota */
 .status-badge {
   display: inline-block;
   padding: 3px 8px;
@@ -408,7 +400,6 @@ select:focus {
   letter-spacing: 1px;
 }
 
-/* Grid de Favoritos (Compacto) */
 .favorites-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -440,7 +431,6 @@ select:focus {
   text-overflow: ellipsis;
 }
 
-/* Cards de Jogadores (Comunidade) */
 .players-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -483,7 +473,6 @@ select:focus {
   font-weight: 600;
 }
 
-/* Layout do Feed em 2 Colunas */
 .feed-layout {
   display: grid;
   grid-template-columns: 1fr 340px;
@@ -557,7 +546,6 @@ select:focus {
   color: var(--text-muted);
 }
 
-/* Painel Lateral de Recomendações */
 .rec-sidebar {
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -613,8 +601,122 @@ select:focus {
   margin-top: 2px;
 }
 
+.game-hero {
+  position: relative;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
 
-/* Footer */
+.game-backdrop {
+  height: 220px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.game-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(20, 24, 28, 0.3), var(--bg-card));
+}
+
+.game-hero-content {
+  padding: 24px;
+  display: flex;
+  gap: 28px;
+  position: relative;
+  margin-top: -80px;
+  z-index: 2;
+}
+
+.game-hero-content.no-backdrop {
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .game-hero-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.game-hero-cover {
+  width: 210px;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--border-subtle);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.game-hero-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-hero-info h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-pill {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.details-box {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.screenshots-grid img {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
 .footer {
   background-color: var(--bg-nav);
   border-top: 1px solid var(--border-subtle);

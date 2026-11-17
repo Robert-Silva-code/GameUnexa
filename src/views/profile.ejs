@@ -21,8 +21,7 @@
   <% } %>
 </div>
 
-<!-- Seção de Favoritos -->
-<h2 class="section-title">❤️ Jogos Favoritos</h2>
+<h2 class="section-title">Jogos Favoritos <i class="ph-fill ph-heart" style="color: #ef4444;"></i> </h2>
 
 <% if (favorites.length === 0) { %>
   <p style="color: var(--text-muted); margin-bottom: 32px;">Nenhum jogo favoritado ainda.</p>
@@ -30,23 +29,24 @@
   <div class="favorites-grid">
     <% favorites.forEach(game => { %>
       <div class="fav-card">
-        <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
-        <p title="<%= game.name %>"><%= game.name %></p>
+        <a href="/games/<%= game.igdbId %>" class="fav-card">
+          <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+          <p title="<%= game.name %>"><%= game.name %></p>
+        </a>
       </div>
     <% }) %>
   </div>
 <% } %>
 
-<!-- Seção da Biblioteca -->
 <h2 class="section-title">Biblioteca</h2>
 
 <% const baseProfileUrl = profileUser.isOwnProfile ? '/profile' : '/profile/' + profileUser.username; %>
 <div class="filter-tabs">
   <a href="<%= baseProfileUrl %>?status=ALL" class="filter-tab <%= statusFilter === 'ALL' ? 'active' : '' %>">Todos</a>
-  <a href="<%= baseProfileUrl %>?status=PLAYING" class="filter-tab <%= statusFilter === 'PLAYING' ? 'active' : '' %>">🎮 Jogando</a>
-  <a href="<%= baseProfileUrl %>?status=BEATEN" class="filter-tab <%= statusFilter === 'BEATEN' ? 'active' : '' %>">🏆 Zerados</a>
-  <a href="<%= baseProfileUrl %>?status=WISHLIST" class="filter-tab <%= statusFilter === 'WISHLIST' ? 'active' : '' %>">⭐ Lista de Desejos</a>
-  <a href="<%= baseProfileUrl %>?status=BACKLOG" class="filter-tab <%= statusFilter === 'BACKLOG' ? 'active' : '' %>">📚 Backlog</a>
+  <a href="<%= baseProfileUrl %>?status=PLAYING" class="filter-tab <%= statusFilter === 'PLAYING' ? 'active' : '' %>">Jogando</a>
+  <a href="<%= baseProfileUrl %>?status=BEATEN" class="filter-tab <%= statusFilter === 'BEATEN' ? 'active' : '' %>">Zerados</a>
+  <a href="<%= baseProfileUrl %>?status=WISHLIST" class="filter-tab <%= statusFilter === 'WISHLIST' ? 'active' : '' %>">Lista de Desejos</a>
+  <a href="<%= baseProfileUrl %>?status=BACKLOG" class="filter-tab <%= statusFilter === 'BACKLOG' ? 'active' : '' %>">Backlog</a>
 </div>
 
 <% if (library.length === 0) { %>
@@ -59,20 +59,22 @@
 <% } else { %>
   <% 
     const statusLabels = {
-      PLAYING: '🎮 Jogando',
-      BEATEN: '🏆 Zerado',
-      WISHLIST: '⭐ Lista de Desejos',
-      BACKLOG: '📚 Backlog'
+      PLAYING: 'Jogando',
+      BEATEN: 'Zerado',
+      WISHLIST: 'Lista de Desejos',
+      BACKLOG: 'Backlog'
     };
   %>
   <div class="games-grid">
     <% library.forEach(game => { %>
       <div class="game-card">
         <div class="game-cover-wrapper">
-          <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+          <a href="/games/<%= game.igdbId %>" class="game-cover-wrapper">
+            <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+          </a>
         </div>
         <div class="game-body">
-          <h3 class="game-title"><%= game.name %></h3>
+          <a href="/games/<%= game.igdbId %>"><h3 class="game-title"><%= game.name %></h3></a>
           
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span class="status-badge"><%= statusLabels[game.status] || game.status %></span>

@@ -1,0 +1,154 @@
+<%- include('partials/head', { title: game.name }) %>
+
+<div style="margin-bottom: 16px;">
+  <a href="/games/catalog" style="color: var(--text-secondary); font-size: 0.9rem;">← Voltar para o Catálogo</a>
+</div>
+
+<div class="game-hero">
+  <% if (game.backdropUrl) { %>
+    <div class="game-backdrop" style="background-image: url('<%= game.backdropUrl %>');"></div>
+  <% } %>
+
+  <div class="game-hero-content <%= !game.backdropUrl ? 'no-backdrop' : '' %>">
+    <img src="<%= game.coverUrl %>" alt="<%= game.name %>" class="game-hero-cover">
+
+    <div class="game-hero-info">
+      <h1><%= game.name %></h1>
+      <p class="game-meta">
+        Desenvolvido por <strong><%= game.developer %></strong> • Lançamento: <strong><%= game.releaseDate %></strong>
+      </p>
+
+      <div class="profile-stats">
+        <span><i class="ph-fill ph-game-controller"></i> <strong><%= socialData.playersCount %></strong> na rede</span>
+        <span>
+          <i class="ph-fill ph-star" style="color: #F2EB07;"></i> Média da Rede:
+          <strong><%= socialData.avgRating ? socialData.avgRating + ' / 5' : 'Sem notas' %></strong>
+        </span>
+        <% if (game.criticRating) { %>
+          <span><i class="ph-fill ph-trophy" style="color: #F2EB07;"></i> Crítica IGDB: <strong><%= game.criticRating %>/100</strong></span>
+        <% } %>
+      </div>
+
+      <% if (game.genres.length > 0) { %>
+        <div class="tag-list">
+          <% game.genres.forEach(genre => { %>
+            <span class="tag-pill"><%= genre %></span>
+          <% }) %>
+        </div>
+      <% } %>
+
+      <% if (game.platforms.length > 0) { %>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          <strong>Plataformas:</strong> <%= game.platforms.join(', ') %>
+        </p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="details-grid">
+  <div>
+    <div class="details-box">
+      <h2 class="section-title">Sobre o Jogo</h2>
+      <p style="color: var(--text-secondary); white-space: pre-line;"><%= game.summary %></p>
+
+      <% if (game.storyline) { %>
+        <h3 style="font-size: 1.05rem; margin-top: 18px; margin-bottom: 8px;">Enredo</h3>
+        <p style="color: var(--text-secondary); white-space: pre-line;"><%= game.storyline %></p>
+      <% } %>
+    </div>
+
+    <% if (game.screenshots.length > 0) { %>
+      <div class="details-box">
+        <h2 class="section-title">Capturas de Tela</h2>
+        <div class="screenshots-grid">
+          <% game.screenshots.forEach(src => { %>
+            <img src="<%= src %>" alt="Screenshot de <%= game.name %>">
+          <% }) %>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="details-box">
+      <h2 class="section-title"><i class="ph-fill ph-chat-centered-dots"></i>Avaliações da Comunidade (<%= socialData.reviews.length %>)</h2>
+
+      <form class="inline-form" action="/games/review" method="POST" style="margin-bottom: 20px;">
+        <input type="hidden" name="igdbId" value="<%= game.igdbId %>">
+        <input type="hidden" name="name" value="<%= game.name %>">
+        <input type="hidden" name="coverUrl" value="<%= game.coverUrl %>">
+        <input type="hidden" name="redirectTo" value="/games/<%= game.igdbId %>">
+        <input type="text" name="text" placeholder="Compartilhe sua opinião sobre <%= game.name %>..." required>
+        <button type="submit" class="btn btn-primary">Publicar Avaliação</button>
+      </form>
+
+      <% if (socialData.reviews.length === 0) { %>
+        <p style="color: var(--text-muted);">Ninguém avaliou este jogo ainda. Seja o primeiro!</p>
+      <% } else { %>
+        <div class="feed-list">
+          <% socialData.reviews.forEach(rev => { %>
+            <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                <a href="/profile/<%= rev.author %>" style="color: var(--accent-green); font-weight: 700;">@<%= rev.author %></a>
+                <span class="activity-time">
+                  <%= new Date(rev.createdAt).toLocaleDateString('pt-BR') %>
+                </span>
+              </div>
+              <p style="color: var(--text-primary); font-size: 0.95rem;"><%= rev.text %></p>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <aside class="details-box" style="position: sticky; top: 84px;">
+    <h2 class="section-title">Sua Atividade</h2>
+
+    <form action="/games/favorite" method="POST" style="margin-bottom: 14px;">
+      <input type="hidden" name="igdbId" value="<%= game.igdbId %>">
+      <input type="hidden" name="name" value="<%= game.name %>">
+      <input type="hidden" name="coverUrl" value="<%= game.coverUrl %>">
+      <input type="hidden" name="redirectTo" value="/games/<%= game.igdbId %>">
+      <button type="submit" class="btn btn-secondary btn-full <%= socialData.isFavorited ? 'fav-active' : '' %>">
+            <% if (socialData.isFavorited) { %>
+              <i class="ph-fill ph-heart" style="color: #ef4444;"></i> Favoritado
+            <% } else { %>
+              <i class="ph ph-heart"></i> Favoritar
+            <% } %>
+      </button>
+    </form>
+
+    <form class="inline-form" action="/games/library" method="POST">
+      <input type="hidden" name="igdbId" value="<%= game.igdbId %>">
+      <input type="hidden" name="name" value="<%= game.name %>">
+      <input type="hidden" name="coverUrl" value="<%= game.coverUrl %>">
+      <input type="hidden" name="redirectTo" value="/games/<%= game.igdbId %>">
+
+      <div class="form-group" style="margin-bottom: 8px;">
+        <label>Status na Biblioteca</label>
+        <select name="status">
+          <option value="PLAYING" <%= socialData.myStatus === 'PLAYING' ? 'selected' : '' %>>Jogando</option>
+          <option value="BEATEN" <%= socialData.myStatus === 'BEATEN' ? 'selected' : '' %>>Zerado</option>
+          <option value="WISHLIST" <%= socialData.myStatus === 'WISHLIST' ? 'selected' : '' %>>Lista de Desejos</option>
+          <option value="BACKLOG" <%= socialData.myStatus === 'BACKLOG' ? 'selected' : '' %>>Na Fila (Backlog)</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label>Sua Nota</label>
+        <select name="rating">
+          <option value="">Sem nota</option>
+          <% for(let i = 1; i <= 5; i++) { %>
+            <option value="<%= i %>" <%= socialData.myRating === i ? 'selected' : '' %>><%= '★'.repeat(i) %> (<%= i %>/5)</option>
+          <% } %>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full">
+        <%= socialData.myStatus ? 'Atualizar Biblioteca' : '+ Adicionar à Biblioteca' %>
+      </button>
+    </form>
+  </aside>
+</div>
+
+<%- include('partials/footer') %>

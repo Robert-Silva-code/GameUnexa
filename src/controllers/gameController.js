@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { searchGames } from '../config/igdb.js';
+import { searchGames, getGameById } from '../config/igdb.js';
 import { getSession } from '../config/neo4j.js';
 
 export const renderCatalog = async (req, res) => {
@@ -68,9 +68,71 @@ export const renderCatalog = async (req, res) => {
   }
 };
 
+export const renderGameDetails = async (req, res) => {
+  const { igdbId } = req.params;
+  const userId = req.user.id;
+  const session = getSession();
+
+  try {
+    const game = await getGameById(igdbId);
+
+    if (!game) {
+      return res.status(404).send('Jogo não encontrado na IGDB.');
+    }
+
+    const result = await session.run(
+      `
+      OPTIONAL MATCH (g:Game { igdbId: $igdbId })
+      OPTIONAL MATCH (me:User { id: $userId })-[myLib:HAS_IN_LIBRARY]->(g)
+      OPTIONAL MATCH (me)-[myFav:FAVORITED]->(g)
+      OPTIONAL MATCH (allUsers:User)-[allLib:HAS_IN_LIBRARY]->(g)
+      OPTIONAL MATCH (author:User)-[:POSTED]->(rev:Review)-[:ABOUT]->(g)
+      WITH g, myLib, myFav,
+           count(DISTINCT allUsers) AS playersCount,
+           avg(allLib.rating) AS avgRating,
+           author, rev
+      ORDER BY rev.createdAt DESC
+      RETURN myLib.status AS myStatus,
+             myLib.rating AS myRating,
+             myFav IS NOT NULL AS isFavorited,
+             playersCount,
+             avgRating,
+             collect(DISTINCT {
+               id: rev.id,
+               text: rev.text,
+               author: author.username,
+               createdAt: toString(rev.createdAt)
+             }) AS reviews
+      `,
+      { igdbId: String(igdbId), userId }
+    );
+
+    const record = result.records[0];
+    const socialData = {
+      myStatus: record.get('myStatus'),
+      myRating: record.get('myRating') ? record.get('myRating').toNumber() : null,
+      isFavorited: record.get('isFavorited'),
+      playersCount: record.get('playersCount').toNumber(),
+      avgRating: record.get('avgRating') ? Number(record.get('avgRating')).toFixed(1) : null,
+      reviews: record.get('reviews').filter(r => r.id !== null)
+    };
+
+    res.render('game-details', { game, socialData });
+  } catch (error) {
+    console.error('Erro ao carregar detalhes do jogo:', error);
+    res.status(500).send('Erro ao carregar detalhes do jogo.');
+  } finally {
+    await session.close();
+  }
+};
+
+const getRedirectUrl = (body) => {
+  if (body.redirectTo) return body.redirectTo;
+  return `/games/catalog?q=${encodeURIComponent(body.redirectQuery || '')}`;
+};
+
 export const saveToLibrary = async (req, res) => {
   const userId = req.user.id;
-  // Adicionado redirectPage aqui:
   const { igdbId, name, coverUrl, status, rating, redirectQuery, redirectPage } = req.body;
   const session = getSession();
 
@@ -95,7 +157,6 @@ export const saveToLibrary = async (req, res) => {
       }
     );
 
-    // Mantém a página atual no redirecionamento:
     const pageParam = redirectPage ? `&page=${redirectPage}` : '';
     res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}${pageParam}`);
   } catch (error) {
@@ -108,7 +169,6 @@ export const saveToLibrary = async (req, res) => {
 
 export const toggleFavorite = async (req, res) => {
   const userId = req.user.id;
-  // Adicionado redirectPage aqui:
   const { igdbId, name, coverUrl, redirectQuery, redirectPage } = req.body;
   const session = getSession();
 
@@ -130,7 +190,6 @@ export const toggleFavorite = async (req, res) => {
       { userId, igdbId: String(igdbId), name, coverUrl }
     );
 
-    // Mantém a página atual no redirecionamento:
     const pageParam = redirectPage ? `&page=${redirectPage}` : '';
     res.redirect(`/games/catalog?q=${encodeURIComponent(redirectQuery || '')}${pageParam}`);
   } catch (error) {
@@ -143,7 +202,6 @@ export const toggleFavorite = async (req, res) => {
 
 export const addReview = async (req, res) => {
   const userId = req.user.id;
-  // Adicionado redirectPage aqui:
   const { igdbId, name, coverUrl, text, redirectQuery, redirectPage } = req.body;
   const session = getSession();
   const pageParam = redirectPage ? `&page=${redirectPage}` : '';

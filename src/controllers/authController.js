@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { getSession } from '../config/neo4j.js';
 
-// Helper para gerar o token e configurar o cookie
 const setAuthCookie = (res, user) => {
   const token = jwt.sign(
     { id: user.id, username: user.username },
@@ -19,7 +18,6 @@ const setAuthCookie = (res, user) => {
   });
 };
 
-// Renderizar telas
 export const renderRegister = (req, res) => {
   res.render('register', { error: null, title: "GameUnexa" });
 };
@@ -76,7 +74,6 @@ export const register = async (req, res) => {
   }
 };
 
-// Processar Login
 export const login = async (req, res) => {
   const { email, password } = req.body;
   const session = getSession();
@@ -111,7 +108,6 @@ export const login = async (req, res) => {
   }
 };
 
-// Processar Logout
 export const logout = (req, res) => {
   res.clearCookie('token');
   res.redirect('/auth/login');

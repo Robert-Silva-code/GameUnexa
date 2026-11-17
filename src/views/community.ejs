@@ -34,8 +34,12 @@
           <form action="/community/follow/<%= player.id %>" method="POST" style="flex: 1;">
             <input type="hidden" name="redirectTo" value="/community?q=<%= encodeURIComponent(search) %>">
             <button type="submit" class="btn btn-full <%= player.isFollowing ? 'btn-secondary' : 'btn-primary' %>">
-              <%= player.isFollowing ? '✓ Seguindo' : '+ Seguir' %>
-            </button>
+              <% if (player.isFollowing) { %>
+                <i class="ph-bold ph-check"></i> Seguindo
+              <% } else { %>
+                <i class="ph ph-user-plus"></i> Seguir
+              <% } %>
+          </button>
           </form>
         </div>
       </div>

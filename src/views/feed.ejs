@@ -26,22 +26,25 @@
     <% } else { %>
       <div class="feed-list">
         <% activities.forEach(act => { %>
+
           <div class="activity-card">
-            <img src="<%= act.coverUrl %>" alt="<%= act.gameName %>" class="activity-cover">
+            <a href="/games/<%= act.igdbId %>">
+              <img src="<%= act.coverUrl %>" alt="<%= act.gameName %>" class="activity-cover">
+            </a>
 
             <div class="activity-content">
               <div class="activity-header">
                 <a href="/profile/<%= act.username %>">@<%= act.username %></a>
 
-                <% if (act.type === 'LIBRARY') { %>
-                  <%= statusActionText[act.status] || 'atualizou' %>
-                  <span class="activity-game-title"><%= act.gameName %></span>
-                <% } else if (act.type === 'FAVORITE') { %>
-                  favoritou ❤️ <span class="activity-game-title"><%= act.gameName %></span>
-                <% } else if (act.type === 'REVIEW') { %>
-                  avaliou <span class="activity-game-title"><%= act.gameName %></span>
-                <% } %>
-              </div>
+              <% if (act.type === 'LIBRARY') { %>
+                <%= statusActionText[act.status] || 'atualizou' %>
+                <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
+              <% } else if (act.type === 'FAVORITE') { %>
+                favoritou <i class="ph-fill ph-heart" style="color: #ef4444;"></i> <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
+              <% } else if (act.type === 'REVIEW') { %>
+                avaliou <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
+              <% } %>
+            </div>
 
               <% if (act.rating) { %>
                 <div>
@@ -67,7 +70,7 @@
   </div>
 
   <aside class="rec-sidebar">
-    <h2>✨ Recomendados pela sua Rede</h2>
+    <h2><i class="ph-fill ph-sparkle" style="color: #DADD1D;"></i> Recomendados pela sua Rede</h2>
 
     <% if (recommendations.length === 0) { %>
       <p style="font-size: 0.88rem; color: var(--text-muted);">
@@ -76,17 +79,21 @@
     <% } else { %>
       <% recommendations.forEach(rec => { %>
         <div class="rec-item">
-          <img src="<%= rec.coverUrl %>" alt="<%= rec.name %>">
+          <a href="/games/<%= rec.igdbId %>">
+            <img src="<%= rec.coverUrl %>" alt="<%= rec.name %>">
+          </a>
           <div class="rec-info">
-            <div class="rec-title" title="<%= rec.name %>"><%= rec.name %></div>
+            <a href="/games/<%= rec.igdbId %>" class="rec-title" style="display: block;" title="<%= rec.name %>">
+              <%= rec.name %>
+            </a>
             <div class="rec-friends">
               Jogado por <strong>@<%= rec.recommendedBy.slice(0, 2).join(', @') %></strong>
               <% if (rec.recommendedBy.length > 2) { %>
                 e mais <%= rec.recommendedBy.length - 2 %>
               <% } %>
             </div>
-            <a href="/games/catalog?q=<%= encodeURIComponent(rec.name) %>" style="font-size: 0.8rem; color: var(--accent-green); display: inline-block; margin-top: 4px;">
-              Ver no catálogo →
+            <a href="/games/<%= rec.igdbId %>" style="font-size: 0.8rem; color: var(--accent-green); display: inline-block; margin-top: 4px;">
+              Ver detalhes →
             </a>
           </div>
         </div>

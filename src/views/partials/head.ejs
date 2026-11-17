@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof title !== 'undefined' ? title + ' | GameUnexa' : 'GameUnexa' %></title>
   <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
 <body>
   <header class="navbar">
@@ -12,10 +13,10 @@
 
     <nav class="nav-links">
       <% if (locals.user) { %>
-        <a href="/feed">Feed</a>
-        <a href="/games/catalog">Catálogo</a>
-        <a href="/profile">Minha Biblioteca</a>
-        <a href="/community">Comunidade</a>
+        <a href="/feed"><i class="ph ph-chat"></i>  Feed</a>
+        <a href="/games/catalog"><i class="ph ph-list-dashes"></i> Catálogo</a>
+        <a href="/profile"><i class="ph ph-books"></i> Minha Biblioteca</a>
+        <a href="/community"><i class="ph ph-users-four"></i> Comunidade</a>
         <span class="nav-user-badge">@<%= user.username %></span>
         <a href="/auth/logout" class="btn btn-danger">Sair</a>
       <% } else { %>

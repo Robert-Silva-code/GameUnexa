@@ -28,7 +28,6 @@ app.use(express.static(path.join(currentDirectory, "src", "public")));
 
 app.use(checkUser);
 
-// Rotas
 app.get('/', (req, res) => {
   res.render('index');
 });

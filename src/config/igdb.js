@@ -65,3 +65,54 @@ export const searchGames = async (query = '', page = 1, limit = 20) => {
     summary: game.summary || 'Sem descrição disponível.'
   }));
 };
+
+
+export const getGameById = async (igdbId) => {
+  const token = await getIgdbToken();
+
+  const apicalypseQuery = `
+    fields id, name, cover.url, screenshots.url, first_release_date, summary, storyline,
+           aggregated_rating, genres.name, platforms.name, involved_companies.company.name, involved_companies.developer;
+    where id = ${Number(igdbId)};
+    limit 1;
+  `;
+
+  const response = await axios.post('https://api.igdb.com/v4/games', apicalypseQuery, {
+    headers: {
+      'Client-ID': process.env.TWITCH_CLIENT_ID,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'text/plain'
+    }
+  });
+
+  if (!response.data || response.data.length === 0) {
+    return null;
+  }
+
+  const game = response.data[0];
+
+  const devCompany = game.involved_companies?.find(c => c.developer)?.company?.name || 'Estúdio não informado';
+
+  return {
+    igdbId: String(game.id),
+    name: game.name,
+    coverUrl: game.cover?.url
+      ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}`
+      : 'https://via.placeholder.com/264x352?text=Sem+Capa',
+    backdropUrl: game.screenshots?.[0]?.url
+      ? `https:${game.screenshots[0].url.replace('t_thumb', 't_screenshot_big')}`
+      : null,
+    screenshots: (game.screenshots || []).slice(0, 4).map(s =>
+      `https:${s.url.replace('t_thumb', 't_screenshot_med')}`
+    ),
+    releaseDate: game.first_release_date
+      ? new Date(game.first_release_date * 1000).toLocaleDateString('pt-BR')
+      : 'Data desconhecida',
+    summary: game.summary || 'Sem sinopse disponível.',
+    storyline: game.storyline || null,
+    criticRating: game.aggregated_rating ? Math.round(game.aggregated_rating) : null,
+    genres: game.genres ? game.genres.map(g => g.name) : [],
+    platforms: game.platforms ? game.platforms.map(p => p.name) : [],
+    developer: devCompany
+  };
+};
