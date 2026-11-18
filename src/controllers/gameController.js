@@ -241,3 +241,18 @@ export const addReview = async (req, res) => {
     await session.close();
   }
 };
+
+export const searchGamesJson = async (req, res) => {
+  const query = req.query.q || '';
+  if (query.trim().length < 2) {
+    return res.json([]);
+  }
+
+  try {
+    const games = await searchGames(query);
+    res.json(games.slice(0, 6));
+  } catch (error) {
+    console.error('Erro na busca rápida IGDB:', error);
+    res.status(500).json([]);
+  }
+};

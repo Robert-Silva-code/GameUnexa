@@ -1,4 +1,5 @@
 import { getSession } from '../config/neo4j.js';
+import { v4 as uuidv4 } from 'uuid';
 
 export const renderProfile = async (req, res) => {
   const loggedUserId = req.user.id;
@@ -190,6 +191,73 @@ export const toggleFollow = async (req, res) => {
   }
 };
 
+export const createPost = async (req, res) => {
+  const userId = req.user.id;
+  const { text, visibility, igdbId, gameName, coverUrl } = req.body;
+  const session = getSession();
+
+  try {
+    if (!text || !text.trim()) {
+      return res.redirect('/feed');
+    }
+
+    const postVisibility = visibility === 'FOLLOWERS' ? 'FOLLOWERS' : 'PUBLIC';
+    const postId = uuidv4();
+
+    if (igdbId && gameName) {
+      await session.run(
+        `
+        MATCH (u:User { id: $userId })
+        MERGE (g:Game { igdbId: $igdbId })
+        ON CREATE SET g.name = $gameName, g.coverUrl = $coverUrl
+        CREATE (p:Post {
+          id: $postId,
+          text: $text,
+          visibility: $visibility,
+          createdAt: datetime()
+        })
+        CREATE (u)-[:PUBLISHED]->(p)-[:TAGS]->(g)
+        `,
+        {
+          userId,
+          postId,
+          text: text.trim(),
+          visibility: postVisibility,
+          igdbId: String(igdbId),
+          gameName,
+          coverUrl: coverUrl || 'https://via.placeholder.com/264x352?text=Sem+Capa'
+        }
+      );
+    } else {
+      await session.run(
+        `
+        MATCH (u:User { id: $userId })
+        CREATE (p:Post {
+          id: $postId,
+          text: $text,
+          visibility: $visibility,
+          createdAt: datetime()
+        })
+        CREATE (u)-[:PUBLISHED]->(p)
+        `,
+        {
+          userId,
+          postId,
+          text: text.trim(),
+          visibility: postVisibility
+        }
+      );
+    }
+
+    res.redirect('/feed');
+  } catch (error) {
+    console.error('Erro ao criar publicação:', error);
+    res.status(500).send('Erro ao publicar no feed.');
+  } finally {
+    await session.close();
+  }
+};
+
 export const renderFeed = async (req, res) => {
   const userId = req.user.id;
   const session = getSession();
@@ -197,10 +265,29 @@ export const renderFeed = async (req, res) => {
   try {
     const feedResult = await session.run(
       `
-      MATCH (me:User { id: $userId })-[:FOLLOWS]->(friend:User)
+      MATCH (me:User { id: $userId })
       CALL {
-        WITH friend
-        MATCH (friend)-[lib:HAS_IN_LIBRARY]->(g:Game)
+        WITH me
+        MATCH (author:User)-[:PUBLISHED]->(p:Post)
+        WHERE author.id = me.id
+           OR (me)-[:FOLLOWS]->(author)
+           OR p.visibility = 'PUBLIC'
+        OPTIONAL MATCH (p)-[:TAGS]->(g:Game)
+        RETURN 'POST' AS type,
+               author.username AS username,
+               g.igdbId AS igdbId,
+               g.name AS gameName,
+               g.coverUrl AS coverUrl,
+               null AS status,
+               null AS rating,
+               p.text AS text,
+               p.visibility AS visibility,
+               p.createdAt AS timestamp
+
+        UNION
+
+        WITH me
+        MATCH (me)-[:FOLLOWS]->(friend:User)-[lib:HAS_IN_LIBRARY]->(g:Game)
         RETURN 'LIBRARY' AS type,
                friend.username AS username,
                g.igdbId AS igdbId,
@@ -209,10 +296,13 @@ export const renderFeed = async (req, res) => {
                lib.status AS status,
                lib.rating AS rating,
                null AS text,
+               'FOLLOWERS' AS visibility,
                lib.updatedAt AS timestamp
+
         UNION
-        WITH friend
-        MATCH (friend)-[fav:FAVORITED]->(g:Game)
+
+        WITH me
+        MATCH (me)-[:FOLLOWS]->(friend:User)-[fav:FAVORITED]->(g:Game)
         RETURN 'FAVORITE' AS type,
                friend.username AS username,
                g.igdbId AS igdbId,
@@ -221,10 +311,13 @@ export const renderFeed = async (req, res) => {
                null AS status,
                null AS rating,
                null AS text,
+               'FOLLOWERS' AS visibility,
                fav.createdAt AS timestamp
+
         UNION
-        WITH friend
-        MATCH (friend)-[:POSTED]->(rev:Review)-[:ABOUT]->(g:Game)
+
+        WITH me
+        MATCH (me)-[:FOLLOWS]->(friend:User)-[:POSTED]->(rev:Review)-[:ABOUT]->(g:Game)
         RETURN 'REVIEW' AS type,
                friend.username AS username,
                g.igdbId AS igdbId,
@@ -233,11 +326,12 @@ export const renderFeed = async (req, res) => {
                null AS status,
                null AS rating,
                rev.text AS text,
+               'PUBLIC' AS visibility,
                rev.createdAt AS timestamp
       }
-      RETURN type, username, igdbId, gameName, coverUrl, status, rating, text, toString(timestamp) AS timestamp
+      RETURN type, username, igdbId, gameName, coverUrl, status, rating, text, visibility, toString(timestamp) AS timestamp
       ORDER BY timestamp DESC
-      LIMIT 30
+      LIMIT 40
       `,
       { userId }
     );
@@ -251,6 +345,7 @@ export const renderFeed = async (req, res) => {
       status: r.get('status'),
       rating: r.get('rating') ? r.get('rating').toNumber() : null,
       text: r.get('text'),
+      visibility: r.get('visibility'),
       timestamp: r.get('timestamp')
     }));
 

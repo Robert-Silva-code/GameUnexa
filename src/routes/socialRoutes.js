@@ -5,12 +5,14 @@ import {
   removeFromLibrary,
   renderCommunity,
   toggleFollow,
-  renderFeed
+  renderFeed,
+  createPost
 } from '../controllers/socialController.js';
 
 const router = Router();
 
 router.get('/feed', requireAuth, renderFeed);
+router.post('/feed/post', requireAuth, createPost);
 
 router.get('/profile', requireAuth, renderProfile);
 router.get('/profile/:username', requireAuth, renderProfile);

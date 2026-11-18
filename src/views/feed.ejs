@@ -12,39 +12,92 @@
 <div class="feed-layout">
   <div>
     <h1 style="margin-bottom: 6px;">Feed da Comunidade</h1>
-    <p style="color: var(--text-secondary); margin-bottom: 24px;">
-      Acompanhe as avaliações, notas e atualizações dos jogadores que você segue.
+    <p style="color: var(--text-secondary); margin-bottom: 20px;">
+      Compartilhe o que você está jogando e acompanhe sua rede.
     </p>
+
+    <div class="post-composer">
+      <form action="/feed/post" method="POST">
+        <textarea
+          name="text"
+          rows="3"
+          maxlength="500"
+          placeholder="No que você está pensando ou jogando hoje, @<%= user.username %>?"
+          required
+        ></textarea>
+
+        <div id="selectedGameChip" class="selected-game-chip" style="display: none;">
+          <span id="selectedGameLabel"></span>
+          <button type="button" id="clearGameBtn" title="Remover jogo"><i class="ph ph-x"></i></button>
+        </div>
+
+        <input type="hidden" name="igdbId" id="postIgdbId">
+        <input type="hidden" name="gameName" id="postGameName">
+        <input type="hidden" name="coverUrl" id="postCoverUrl">
+
+        <div class="composer-controls">
+          <div class="game-picker-wrapper">
+            <input
+              type="text"
+              id="gameSearchInput"
+              placeholder="Vincular um jogo (opcional)..."
+              autocomplete="off"
+            >
+            <div id="gameSearchDropdown" class="game-search-dropdown"></div>
+          </div>
+
+          <select name="visibility" style="width: auto; min-width: 165px;">
+            <option value="PUBLIC">Público</option>
+            <option value="FOLLOWERS">Apenas Seguidores</option>
+          </select>
+
+          <button type="submit" class="btn btn-primary">Publicar</button>
+        </div>
+      </form>
+    </div>
 
     <% if (activities.length === 0) { %>
       <div class="activity-card" style="flex-direction: column;">
         <p style="color: var(--text-secondary);">
-          Seu feed ainda está vazio! Siga outros jogadores para ver as avaliações e jogos deles aqui.
+          Ainda não há publicações por aqui. Crie a primeira acima ou siga outros jogadores!
         </p>
         <a href="/community" class="btn btn-primary">Encontrar Jogadores</a>
       </div>
     <% } else { %>
       <div class="feed-list">
         <% activities.forEach(act => { %>
-
           <div class="activity-card">
-            <a href="/games/<%= act.igdbId %>">
-              <img src="<%= act.coverUrl %>" alt="<%= act.gameName %>" class="activity-cover">
-            </a>
+            <% if (act.coverUrl) { %>
+              <a href="/games/<%= act.igdbId %>">
+                <img src="<%= act.coverUrl %>" alt="<%= act.gameName %>" class="activity-cover">
+              </a>
+            <% } %>
 
             <div class="activity-content">
               <div class="activity-header">
                 <a href="/profile/<%= act.username %>">@<%= act.username %></a>
 
-              <% if (act.type === 'LIBRARY') { %>
-                <%= statusActionText[act.status] || 'atualizou' %>
-                <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
-              <% } else if (act.type === 'FAVORITE') { %>
-                favoritou <i class="ph-fill ph-heart" style="color: #ef4444;"></i> <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
-              <% } else if (act.type === 'REVIEW') { %>
-                avaliou <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
-              <% } %>
-            </div>
+                <% if (act.type === 'POST') { %>
+                  publicou
+                  <% if (act.gameName) { %>
+                    sobre <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
+                  <% } %>
+                  <span class="visibility-pill" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                    <% if (act.visibility === 'FOLLOWERS') { %>
+                      <i class="ph-bold ph-lock-key"></i> Seguidores
+                    <% } else { %>
+                      <i class="ph-bold ph-globe-hemisphere-west"></i> Público
+                    <% } %>
+                  </span>
+                <% } else if (act.type === 'LIBRARY') { %>
+                  <%= statusActionText[act.status] || 'atualizou' %>
+                  <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
+                <% } else if (act.type === 'FAVORITE') { %>
+                  favoritou <i class="ph-fill ph-heart" style="color: #e41f1f;"></i> <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
+                <% } else if (act.type === 'REVIEW') { %>
+                  avaliou <a href="/games/<%= act.igdbId %>" class="activity-game-title" style="color: var(--text-primary);"><%= act.gameName %></a>
+                <% } %>
+              </div>
 
               <% if (act.rating) { %>
                 <div>
@@ -53,7 +106,9 @@
                 </div>
               <% } %>
 
-              <% if (act.type === 'REVIEW' && act.text) { %>
+              <% if (act.type === 'POST' && act.text) { %>
+                <p style="color: var(--text-primary); font-size: 0.96rem; white-space: pre-line;"><%= act.text %></p>
+              <% } else if (act.type === 'REVIEW' && act.text) { %>
                 <div class="activity-review-quote">
                   "<%= act.text %>"
                 </div>
@@ -70,11 +125,11 @@
   </div>
 
   <aside class="rec-sidebar">
-    <h2><i class="ph-fill ph-sparkle" style="color: #DADD1D;"></i> Recomendados pela sua Rede</h2>
+    <h2><i class="ph-fill ph-sparkle" style="color: #e7c70d;"></i> Recomendados pela sua Rede</h2>
 
     <% if (recommendations.length === 0) { %>
       <p style="font-size: 0.88rem; color: var(--text-muted);">
-        Siga mais jogadores na comunidade para receber recomendações personalizadas baseadas nos jogos deles!
+        Siga mais jogadores na comunidade para receber recomendações personalizadas!
       </p>
     <% } else { %>
       <% recommendations.forEach(rec => { %>
@@ -101,5 +156,84 @@
     <% } %>
   </aside>
 </div>
+
+<script>
+  const searchInput = document.getElementById('gameSearchInput');
+  const dropdown = document.getElementById('gameSearchDropdown');
+  const selectedChip = document.getElementById('selectedGameChip');
+  const selectedLabel = document.getElementById('selectedGameLabel');
+  const clearBtn = document.getElementById('clearGameBtn');
+
+  const inputId = document.getElementById('postIgdbId');
+  const inputName = document.getElementById('postGameName');
+  const inputCover = document.getElementById('postCoverUrl');
+
+  let debounceTimer;
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = searchInput.value.trim();
+
+    if (q.length < 2) {
+      dropdown.style.display = 'none';
+      return;
+    }
+
+    debounceTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/games/api/search?q=${encodeURIComponent(q)}`);
+        const games = await res.json();
+
+        dropdown.innerHTML = '';
+        if (games.length === 0) {
+          dropdown.style.display = 'none';
+          return;
+        }
+
+        games.forEach(game => {
+          const item = document.createElement('div');
+          item.className = 'game-search-option';
+          item.innerHTML = `
+            <img src="${game.coverUrl}" alt="${game.name}">
+            <div>
+              <div style="font-weight: 600; font-size: 0.9rem;">${game.name}</div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">${game.releaseYear}</div>
+            </div>
+          `;
+
+          item.addEventListener('click', () => {
+            inputId.value = game.igdbId;
+            inputName.value = game.name;
+            inputCover.value = game.coverUrl;
+
+            selectedLabel.textContent = `${game.name}`;
+            selectedChip.style.display = 'inline-flex';
+            searchInput.value = '';
+            dropdown.style.display = 'none';
+          });
+
+          dropdown.appendChild(item);
+        });
+
+        dropdown.style.display = 'block';
+      } catch (err) {
+        console.error(err);
+      }
+    }, 350);
+  });
+
+  clearBtn.addEventListener('click', () => {
+    inputId.value = '';
+    inputName.value = '';
+    inputCover.value = '';
+    selectedChip.style.display = 'none';
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.game-picker-wrapper')) {
+      dropdown.style.display = 'none';
+    }
+  });
+</script>
 
 <%- include('partials/footer') %>

@@ -22,7 +22,7 @@
       <% } %>
 
       <div class="profile-stats">
-        <span><strong><%= library.length %></strong> jogos listados</span>
+        <span><strong><%= library.length %></strong> jogos na biblioteca</span>
         <span><strong><%= favorites.length %></strong> favoritos</span>
         <span><strong><%= profileUser.followersCount %></strong> seguidores</span>
         <span><strong><%= profileUser.followingCount %></strong> seguindo</span>
@@ -36,7 +36,11 @@
     <form action="/community/follow/<%= profileUser.id %>" method="POST">
       <input type="hidden" name="redirectTo" value="/profile/<%= profileUser.username %>">
       <button type="submit" class="btn <%= profileUser.isFollowing ? 'btn-secondary' : 'btn-primary' %>">
-        <%= profileUser.isFollowing ? '✓ Seguindo' : '+ Seguir Jogador' %>
+              <% if (profileUser.isFollowing) { %>
+                <i class="ph-bold ph-check"></i> Seguindo
+              <% } else { %>
+                <i class="ph ph-user-plus"></i> Seguir
+              <% } %>
       </button>
     </form>
   <% } %>
