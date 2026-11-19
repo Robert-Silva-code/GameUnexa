@@ -1,0 +1,57 @@
+<%- include('partials/head', { title: 'Chat com @' + partner.username }) %>
+
+<%
+  const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(partner.username)}&background=5865f2&color=fff&size=96`;
+%>
+
+<div class="chat-container">
+  <div class="chat-header">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/messages" style="color: var(--text-secondary); font-size: 1.1rem;">←</a>
+      <img
+        src="<%= partner.avatarUrl || fallback %>"
+        alt="<%= partner.username %>"
+        style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;"
+        onerror="this.src='<%= fallback %>'"
+      >
+      <a href="/profile/<%= partner.username %>" style="font-weight: 700; font-size: 1.05rem;">
+        @<%= partner.username %>
+      </a>
+    </div>
+
+    <a href="/profile/<%= partner.username %>" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;">
+      Ver Perfil
+    </a>
+  </div>
+
+  <div class="chat-messages" id="chatBox">
+    <% if (messages.length === 0) { %>
+      <p style="text-align: center; color: var(--text-muted); margin: auto;">
+        Nenhuma mensagem ainda. Mande um oi para @<%= partner.username %>!
+      </p>
+    <% } else { %>
+      <% messages.forEach(msg => { %>
+        <div class="msg-bubble <%= msg.isMine ? 'msg-mine' : 'msg-theirs' %>">
+          <div style="white-space: pre-line;"><%= msg.text %></div>
+          <span class="msg-time">
+            <%= new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) %>
+          </span>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <form class="chat-input-bar" action="/messages/<%= partner.username %>" method="POST">
+    <input type="text" name="text" placeholder="Conversar com @<%= partner.username %>..." required autocomplete="off" autofocus>
+    <button type="submit" class="btn btn-primary">Enviar</button>
+  </form>
+</div>
+
+<script>
+  const chatBox = document.getElementById('chatBox');
+  if (chatBox) {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+</script>
+
+<%- include('partials/footer') %>

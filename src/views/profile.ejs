@@ -33,6 +33,10 @@
   <% if (profileUser.isOwnProfile) { %>
     <a href="/user/edit" class="btn btn-secondary"><i class="ph ph-pencil-simple"></i> Editar Perfil</a>
   <% } else { %>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <a href="/messages/<%= profileUser.username %>" class="btn btn-secondary">
+        <i class="ph ph-chats"></i> Enviar Mensagem
+      </a>
     <form action="/community/follow/<%= profileUser.id %>" method="POST">
       <input type="hidden" name="redirectTo" value="/profile/<%= profileUser.username %>">
       <button type="submit" class="btn <%= profileUser.isFollowing ? 'btn-secondary' : 'btn-primary' %>">
@@ -43,6 +47,7 @@
               <% } %>
       </button>
     </form>
+    </div>
   <% } %>
 </div>
 

@@ -855,6 +855,76 @@ select:focus {
   margin-left: 6px;
 }
 
+.chat-container {
+  max-width: 760px;
+  margin: 0 auto;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  height: 72vh;
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 14px 20px;
+  background-color: var(--bg-nav);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msg-bubble {
+  max-width: 72%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.94rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.msg-mine {
+  align-self: flex-end;
+  background-color: var(--accent-primary);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+}
+
+.msg-theirs {
+  align-self: flex-start;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-bottom-left-radius: 3px;
+}
+
+.msg-time {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.75;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.chat-input-bar {
+  padding: 14px;
+  background-color: var(--bg-nav);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: 10px;
+}
+
 .footer {
   background-color: var(--bg-nav);
   border-top: 1px solid var(--border-subtle);

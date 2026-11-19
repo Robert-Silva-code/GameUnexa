@@ -1,0 +1,44 @@
+<%- include('partials/head', { title: 'Mensagens' }) %>
+
+<div style="max-width: 760px; margin: 0 auto;">
+  <h1 style="margin-bottom: 6px;">Mensagens Diretas</h1>
+  <p style="color: var(--text-secondary); margin-bottom: 24px;">
+    Suas conversas recentes com outros jogadores. Para iniciar uma nova conversa, acesse o perfil de um jogador na <a href="/community" style="color: var(--accent-green);">Comunidade</a>.
+  </p>
+
+  <% if (conversations.length === 0) { %>
+    <div class="activity-card" style="flex-direction: column;">
+      <p style="color: var(--text-secondary);">Você ainda não trocou mensagens com ninguém.</p>
+      <a href="/community" class="btn btn-primary">Explorar Comunidade</a>
+    </div>
+  <% } else { %>
+    <div class="feed-list">
+      <% conversations.forEach(conv => { 
+        const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(conv.partnerUsername)}&background=5865f2&color=fff&size=96`;
+      %>
+        <a href="/messages/<%= conv.partnerUsername %>" class="activity-card" style="align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 14px; min-width: 0;">
+            <img
+              src="<%= conv.partnerAvatar || fallback %>"
+              alt="<%= conv.partnerUsername %>"
+              style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;"
+              onerror="this.src='<%= fallback %>'"
+            >
+            <div style="min-width: 0;">
+              <strong style="color: var(--accent-green); font-size: 1rem;">@<%= conv.partnerUsername %></strong>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <%= conv.lastText %>
+              </p>
+            </div>
+          </div>
+
+          <span class="activity-time" style="flex-shrink: 0;">
+            <%= new Date(conv.lastDate).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) %>
+          </span>
+        </a>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>
