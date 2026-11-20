@@ -41,17 +41,69 @@
     <% } %>
   </div>
 
-  <form class="chat-input-bar" action="/messages/<%= partner.username %>" method="POST">
-    <input type="text" name="text" placeholder="Conversar com @<%= partner.username %>..." required autocomplete="off" autofocus>
+  <form class="chat-input-bar" id="chatForm" action="/messages/<%= partner.username %>" method="POST">
+    <input type="text" id="msgInput" name="text" placeholder="Conversar com @<%= partner.username %>..." required autocomplete="off" autofocus>
     <button type="submit" class="btn btn-primary">Enviar</button>
   </form>
 </div>
 
+<script src="/socket.io/socket.io.js"></script>
 <script>
+  const socket = io();
   const chatBox = document.getElementById('chatBox');
-  if (chatBox) {
+  const chatForm = document.getElementById('chatForm');
+  const msgInput = document.getElementById('msgInput');
+
+  const myUsername = '<%= user.username %>';
+  const partnerUsername = '<%= partner.username %>';
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = msgInput.value.trim();
+    if (!text) return;
+
+    socket.emit('private_message', {
+      toUsername: partnerUsername,
+      text
+    });
+
+    msgInput.value = '';
+    msgInput.focus();
+  });
+
+  socket.on('new_message', (msg) => {
+    const isThisConversation =
+      (msg.senderUsername === myUsername && msg.toUsername === partnerUsername) ||
+      (msg.senderUsername === partnerUsername && msg.toUsername === myUsername);
+
+    if (!isThisConversation) return;
+
+    const emptyNotice = chatBox.querySelector('p');
+    if (emptyNotice) emptyNotice.remove();
+
+    const isMine = msg.senderUsername === myUsername;
+    const bubble = document.createElement('div');
+    bubble.className = `msg-bubble ${isMine ? 'msg-mine' : 'msg-theirs'}`;
+
+    const textDiv = document.createElement('div');
+    textDiv.style.whiteSpace = 'pre-line';
+    textDiv.textContent = msg.text;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'msg-time';
+    timeSpan.textContent = new Date(msg.createdAt).toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    bubble.appendChild(textDiv);
+    bubble.appendChild(timeSpan);
+    chatBox.appendChild(bubble);
+
     chatBox.scrollTop = chatBox.scrollHeight;
-  }
+  });
 </script>
 
 <%- include('partials/footer') %>
