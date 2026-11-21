@@ -69,8 +69,8 @@
       </div>
     <% } %>
 
-    <div class="details-box">
-      <h2 class="section-title"><i class="ph-fill ph-chat-centered-dots"></i>Avaliações da Comunidade (<%= socialData.reviews.length %>)</h2>
+<div class="details-box">
+      <h2 class="section-title"><i class="ph ph-chat-centered-text"></i> Avaliações da Comunidade (<%= socialData.reviews.length %>)</h2>
 
       <form class="inline-form" action="/games/review" method="POST" style="margin-bottom: 20px;">
         <input type="hidden" name="igdbId" value="<%= game.igdbId %>">
@@ -93,7 +93,40 @@
                   <%= new Date(rev.createdAt).toLocaleDateString('pt-BR') %>
                 </span>
               </div>
-              <p style="color: var(--text-primary); font-size: 0.95rem;"><%= rev.text %></p>
+
+              <p style="color: var(--text-primary); font-size: 0.95rem; margin-bottom: 8px;"><%= rev.text %></p>
+
+              <div class="activity-actions">
+                <form action="/feed/like/<%= rev.id %>" method="POST">
+                  <input type="hidden" name="redirectTo" value="/games/<%= game.igdbId %>">
+                  <button type="submit" class="btn-like <%= rev.isLiked ? 'liked' : '' %>">
+                    <% if (rev.isLiked) { %>
+                      <i class="ph-fill ph-heart" style="color: #e61414;"></i>
+                    <% } else { %>
+                      <i class="ph-bold ph-heart"></i>
+                      <% } %>
+                    <%= rev.likesCount %>
+                  </button>
+                </form>
+
+                <span style="font-size: 0.84rem; color: var(--text-muted);">
+                  <i class="ph-bold ph-chat-circle"></i> <%= rev.comments.length %> <%= rev.comments.length === 1 ? 'comentário' : 'comentários' %>
+                </span>
+              </div>
+
+              <div class="post-comments-section" style="background-color: var(--bg-card);">
+                <% rev.comments.forEach(c => { %>
+                  <div class="comment-row">
+                    <a href="/profile/<%= c.author %>">@<%= c.author %></a>: <%= c.text %>
+                  </div>
+                <% }) %>
+
+                <form class="comment-form" action="/feed/comment/<%= rev.id %>" method="POST">
+                  <input type="hidden" name="redirectTo" value="/games/<%= game.igdbId %>">
+                  <input type="text" name="text" placeholder="Responder à avaliação..." required maxlength="300">
+                  <button type="submit" class="btn btn-secondary">Comentar</button>
+                </form>
+              </div>
             </div>
           <% }) %>
         </div>

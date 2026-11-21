@@ -95,28 +95,52 @@
       BACKLOG: 'Backlog'
     };
   %>
-  <div class="games-grid">
+<div class="games-grid">
     <% library.forEach(game => { %>
       <div class="game-card">
-        <div class="game-cover-wrapper">
-          <a href="/games/<%= game.igdbId %>" class="game-cover-wrapper">
-            <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
-          </a>
-        </div>
+        <a href="/games/<%= game.igdbId %>" class="game-cover-wrapper">
+          <img src="<%= game.coverUrl %>" alt="<%= game.name %>">
+        </a>
+
         <div class="game-body">
-          <a href="/games/<%= game.igdbId %>"><h3 class="game-title"><%= game.name %></h3></a>
+          <a href="/games/<%= game.igdbId %>">
+            <h3 class="game-title"><%= game.name %></h3>
+          </a>
           
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span class="status-badge"><%= statusLabels[game.status] || game.status %></span>
             <% if (game.rating) { %>
-              <span class="rating-stars"><%= '★'.repeat(game.rating) %></span>
+              <span class="rating-stars"><%= '★'.repeat(game.rating) %><%= '☆'.repeat(5 - game.rating) %></span>
             <% } %>
           </div>
 
           <% if (profileUser.isOwnProfile) { %>
-            <form action="/profile/library/remove" method="POST" style="margin-top: auto;">
+            <form class="inline-form" action="/games/library" method="POST" style="margin-top: auto;">
               <input type="hidden" name="igdbId" value="<%= game.igdbId %>">
-              <button type="submit" class="btn btn-danger btn-full">Remover da Biblioteca</button>
+              <input type="hidden" name="name" value="<%= game.name %>">
+              <input type="hidden" name="coverUrl" value="<%= game.coverUrl %>">
+              <input type="hidden" name="redirectTo" value="/profile?status=<%= statusFilter %>">
+
+              <select name="status">
+                <option value="PLAYING" <%= game.status === 'PLAYING' ? 'selected' : '' %>>Jogando</option>
+                <option value="BEATEN" <%= game.status === 'BEATEN' ? 'selected' : '' %>>Zerado</option>
+                <option value="WISHLIST" <%= game.status === 'WISHLIST' ? 'selected' : '' %>>Lista de Desejos</option>
+                <option value="BACKLOG" <%= game.status === 'BACKLOG' ? 'selected' : '' %>>Backlog</option>
+              </select>
+
+              <select name="rating">
+                <option value="">Sem nota</option>
+                <% for(let i = 1; i <= 5; i++) { %>
+                  <option value="<%= i %>" <%= game.rating === i ? 'selected' : '' %>><%= '★'.repeat(i) %> (<%= i %>/5)</option>
+                <% } %>
+              </select>
+
+              <button type="submit" class="btn btn-primary btn-full">Salvar Avaliação</button>
+            </form>
+
+            <form action="/profile/library/remove" method="POST">
+              <input type="hidden" name="igdbId" value="<%= game.igdbId %>">
+              <button type="submit" class="btn btn-danger btn-full">Remover</button>
             </form>
           <% } %>
         </div>

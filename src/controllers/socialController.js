@@ -258,6 +258,76 @@ export const createPost = async (req, res) => {
   }
 };
 
+export const toggleLike = async (req, res) => {
+  const userId = req.user.id;
+  const { targetId } = req.params;
+  const redirectTo = req.body.redirectTo || '/feed';
+  const session = getSession();
+
+  try {
+    await session.run(
+      `
+      MATCH (me:User { id: $userId }), (target)
+      WHERE (target:Post OR target:Review) AND target.id = $targetId
+      OPTIONAL MATCH (me)-[l:LIKED]->(target)
+      FOREACH (_ IN CASE WHEN l IS NULL THEN [1] ELSE [] END |
+        CREATE (me)-[:LIKED { createdAt: datetime() }]->(target)
+      )
+      FOREACH (_ IN CASE WHEN l IS NOT NULL THEN [1] ELSE [] END |
+        DELETE l
+      )
+      `,
+      { userId, targetId }
+    );
+
+    res.redirect(redirectTo);
+  } catch (error) {
+    console.error('Erro ao curtir item:', error);
+    res.status(500).send('Erro ao processar curtida.');
+  } finally {
+    await session.close();
+  }
+};
+
+export const addComment = async (req, res) => {
+  const userId = req.user.id;
+  const { targetId } = req.params;
+  const { text, redirectTo } = req.body;
+  const session = getSession();
+
+  try {
+    if (!text || !text.trim()) {
+      return res.redirect(redirectTo || '/feed');
+    }
+
+    await session.run(
+      `
+      MATCH (me:User { id: $userId }), (target)
+      WHERE (target:Post OR target:Review) AND target.id = $targetId
+      CREATE (c:Comment {
+        id: $commentId,
+        text: $text,
+        createdAt: datetime()
+      })
+      CREATE (me)-[:COMMENTED]->(c)-[:ON]->(target)
+      `,
+      {
+        userId,
+        targetId,
+        commentId: uuidv4(),
+        text: text.trim()
+      }
+    );
+
+    res.redirect(redirectTo || '/feed');
+  } catch (error) {
+    console.error('Erro ao comentar:', error);
+    res.status(500).send('Erro ao publicar comentário.');
+  } finally {
+    await session.close();
+  }
+};
+
 export const renderFeed = async (req, res) => {
   const userId = req.user.id;
   const session = getSession();
@@ -273,7 +343,16 @@ export const renderFeed = async (req, res) => {
            OR (me)-[:FOLLOWS]->(author)
            OR p.visibility = 'PUBLIC'
         OPTIONAL MATCH (p)-[:TAGS]->(g:Game)
-        RETURN 'POST' AS type,
+        OPTIONAL MATCH (liker:User)-[:LIKED]->(p)
+        OPTIONAL MATCH (me)-[myLike:LIKED]->(p)
+        OPTIONAL MATCH (cAuthor:User)-[:COMMENTED]->(c:Comment)-[:ON]->(p)
+        WITH p, author, g,
+             count(DISTINCT liker) AS likesCount,
+             myLike IS NOT NULL AS isLiked,
+             c, cAuthor
+        ORDER BY c.createdAt ASC
+        RETURN p.id AS itemId,
+               'POST' AS type,
                author.username AS username,
                g.igdbId AS igdbId,
                g.name AS gameName,
@@ -282,13 +361,17 @@ export const renderFeed = async (req, res) => {
                null AS rating,
                p.text AS text,
                p.visibility AS visibility,
+               likesCount,
+               isLiked,
+               collect(DISTINCT { id: c.id, author: cAuthor.username, text: c.text }) AS comments,
                p.createdAt AS timestamp
 
         UNION
 
         WITH me
         MATCH (me)-[:FOLLOWS]->(friend:User)-[lib:HAS_IN_LIBRARY]->(g:Game)
-        RETURN 'LIBRARY' AS type,
+        RETURN null AS itemId,
+               'LIBRARY' AS type,
                friend.username AS username,
                g.igdbId AS igdbId,
                g.name AS gameName,
@@ -297,13 +380,17 @@ export const renderFeed = async (req, res) => {
                lib.rating AS rating,
                null AS text,
                'FOLLOWERS' AS visibility,
+               0 AS likesCount,
+               false AS isLiked,
+               [] AS comments,
                lib.updatedAt AS timestamp
 
         UNION
 
         WITH me
         MATCH (me)-[:FOLLOWS]->(friend:User)-[fav:FAVORITED]->(g:Game)
-        RETURN 'FAVORITE' AS type,
+        RETURN null AS itemId,
+               'FAVORITE' AS type,
                friend.username AS username,
                g.igdbId AS igdbId,
                g.name AS gameName,
@@ -312,13 +399,25 @@ export const renderFeed = async (req, res) => {
                null AS rating,
                null AS text,
                'FOLLOWERS' AS visibility,
+               0 AS likesCount,
+               false AS isLiked,
+               [] AS comments,
                fav.createdAt AS timestamp
 
         UNION
 
         WITH me
         MATCH (me)-[:FOLLOWS]->(friend:User)-[:POSTED]->(rev:Review)-[:ABOUT]->(g:Game)
-        RETURN 'REVIEW' AS type,
+        OPTIONAL MATCH (liker:User)-[:LIKED]->(rev)
+        OPTIONAL MATCH (me)-[myLike:LIKED]->(rev)
+        OPTIONAL MATCH (cAuthor:User)-[:COMMENTED]->(c:Comment)-[:ON]->(rev)
+        WITH rev, friend, g,
+             count(DISTINCT liker) AS likesCount,
+             myLike IS NOT NULL AS isLiked,
+             c, cAuthor
+        ORDER BY c.createdAt ASC
+        RETURN rev.id AS itemId,
+               'REVIEW' AS type,
                friend.username AS username,
                g.igdbId AS igdbId,
                g.name AS gameName,
@@ -327,9 +426,12 @@ export const renderFeed = async (req, res) => {
                null AS rating,
                rev.text AS text,
                'PUBLIC' AS visibility,
+               likesCount,
+               isLiked,
+               collect(DISTINCT { id: c.id, author: cAuthor.username, text: c.text }) AS comments,
                rev.createdAt AS timestamp
       }
-      RETURN type, username, igdbId, gameName, coverUrl, status, rating, text, visibility, toString(timestamp) AS timestamp
+      RETURN itemId, type, username, igdbId, gameName, coverUrl, status, rating, text, visibility, likesCount, isLiked, comments, toString(timestamp) AS timestamp
       ORDER BY timestamp DESC
       LIMIT 40
       `,
@@ -337,6 +439,7 @@ export const renderFeed = async (req, res) => {
     );
 
     const activities = feedResult.records.map(r => ({
+      itemId: r.get('itemId'),
       type: r.get('type'),
       username: r.get('username'),
       igdbId: r.get('igdbId'),
@@ -346,6 +449,9 @@ export const renderFeed = async (req, res) => {
       rating: r.get('rating') ? r.get('rating').toNumber() : null,
       text: r.get('text'),
       visibility: r.get('visibility'),
+      likesCount: typeof r.get('likesCount') === 'number' ? r.get('likesCount') : r.get('likesCount').toNumber(),
+      isLiked: r.get('isLiked'),
+      comments: (r.get('comments') || []).filter(c => c.id !== null),
       timestamp: r.get('timestamp')
     }));
 

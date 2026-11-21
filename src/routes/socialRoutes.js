@@ -6,13 +6,17 @@ import {
   renderCommunity,
   toggleFollow,
   renderFeed,
-  createPost
+  createPost,
+  toggleLike,
+  addComment
 } from '../controllers/socialController.js';
 
 const router = Router();
 
 router.get('/feed', requireAuth, renderFeed);
 router.post('/feed/post', requireAuth, createPost);
+router.post('/feed/like/:targetId', requireAuth, toggleLike);
+router.post('/feed/comment/:targetId', requireAuth, addComment);
 
 router.get('/profile', requireAuth, renderProfile);
 router.get('/profile/:username', requireAuth, renderProfile);

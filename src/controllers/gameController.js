@@ -86,35 +86,66 @@ export const renderGameDetails = async (req, res) => {
       OPTIONAL MATCH (me:User { id: $userId })-[myLib:HAS_IN_LIBRARY]->(g)
       OPTIONAL MATCH (me)-[myFav:FAVORITED]->(g)
       OPTIONAL MATCH (allUsers:User)-[allLib:HAS_IN_LIBRARY]->(g)
-      OPTIONAL MATCH (author:User)-[:POSTED]->(rev:Review)-[:ABOUT]->(g)
       WITH g, myLib, myFav,
            count(DISTINCT allUsers) AS playersCount,
-           avg(allLib.rating) AS avgRating,
-           author, rev
-      ORDER BY rev.createdAt DESC
+           avg(allLib.rating) AS avgRating
+
+      CALL {
+        WITH g
+        OPTIONAL MATCH (author:User)-[:POSTED]->(rev:Review)-[:ABOUT]->(g)
+        OPTIONAL MATCH (liker:User)-[:LIKED]->(rev)
+        OPTIONAL MATCH (meUser:User { id: $userId })-[myLike:LIKED]->(rev)
+        OPTIONAL MATCH (cAuthor:User)-[:COMMENTED]->(c:Comment)-[:ON]->(rev)
+        WITH rev, author,
+             count(DISTINCT liker) AS likesCount,
+             myLike IS NOT NULL AS isLiked,
+             c, cAuthor
+        ORDER BY c.createdAt ASC
+        WITH rev, author, likesCount, isLiked,
+             collect(DISTINCT { id: c.id, author: cAuthor.username, text: c.text }) AS comments
+        RETURN collect(DISTINCT {
+          id: rev.id,
+          text: rev.text,
+          author: author.username,
+          createdAt: toString(rev.createdAt),
+          likesCount: likesCount,
+          isLiked: isLiked,
+          comments: comments
+        }) AS reviews
+      }
+
       RETURN myLib.status AS myStatus,
              myLib.rating AS myRating,
              myFav IS NOT NULL AS isFavorited,
              playersCount,
              avgRating,
-             collect(DISTINCT {
-               id: rev.id,
-               text: rev.text,
-               author: author.username,
-               createdAt: toString(rev.createdAt)
-             }) AS reviews
+             reviews
       `,
       { igdbId: String(igdbId), userId }
     );
 
     const record = result.records[0];
+    const rawReviews = (record.get('reviews') || [])
+      .filter(r => r.id !== null)
+      .map(r => ({
+        ...r,
+        likesCount: typeof r.likesCount === 'number' ? r.likesCount : r.likesCount.toNumber(),
+        comments: (r.comments || []).filter(c => c.id !== null)
+      }))
+      .sort((a, b) => {
+        if (b.likesCount !== a.likesCount) {
+          return b.likesCount - a.likesCount;
+        }
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
     const socialData = {
       myStatus: record.get('myStatus'),
       myRating: record.get('myRating') ? record.get('myRating').toNumber() : null,
       isFavorited: record.get('isFavorited'),
       playersCount: record.get('playersCount').toNumber(),
       avgRating: record.get('avgRating') ? Number(record.get('avgRating')).toFixed(1) : null,
-      reviews: record.get('reviews').filter(r => r.id !== null)
+      reviews: rawReviews
     };
 
     res.render('game-details', { game, socialData });

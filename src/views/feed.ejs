@@ -117,6 +117,38 @@
               <span class="activity-time">
                 <%= new Date(act.timestamp).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) %>
               </span>
+
+              <% if (act.itemId) { %>
+                <div class="activity-actions">
+                  <form action="/feed/like/<%= act.itemId %>" method="POST">
+                    <button type="submit" class="btn-like <%= act.isLiked ? 'liked' : '' %>">
+                      <% if (act.isLiked) { %>
+                        <i class="ph-fill ph-heart" style="color: #d62a2a;"></i>
+                      <% } else { %>
+                        <i class="ph-bold ph-heart"></i>
+                      <% } %> 
+                      <%= act.likesCount %>
+                    </button>
+                  </form>
+
+                  <span style="font-size: 0.84rem; color: var(--text-muted);">
+                    <i class="ph-bold ph-chat-circle"></i> <%= act.comments.length %> <%= act.comments.length === 1 ? 'comentário' : 'comentários' %>
+                  </span>
+                </div>
+
+                <div class="post-comments-section">
+                  <% act.comments.forEach(c => { %>
+                    <div class="comment-row">
+                      <a href="/profile/<%= c.author %>">@<%= c.author %></a>: <%= c.text %>
+                    </div>
+                  <% }) %>
+
+                  <form class="comment-form" action="/feed/comment/<%= act.itemId %>" method="POST">
+                    <input type="text" name="text" placeholder="Escreva um comentário..." required maxlength="300">
+                    <button type="submit" class="btn btn-secondary">Comentar</button>
+                  </form>
+                </div>
+              <% } %>
             </div>
           </div>
         <% }) %>
